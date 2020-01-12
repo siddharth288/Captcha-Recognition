@@ -1,0 +1,352 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[2]:
+
+
+import tensorflow as tf
+import matplotlib.pyplot as plt
+
+
+# In[3]:
+
+
+mnist = tf.keras.datasets.mnist
+
+
+# In[15]:
+
+
+(x_train , y_train) , (x_test , y_test) = mnist.load_data()
+x_train = tf.keras.utils.normalize(x_train , axis=1)
+x_test = tf.keras.utils.normalize(x_test , axis=1)
+
+model = tf.keras.models.Sequential()
+model.add(tf.keras.layers.Flatten())
+model.add(tf.keras.layers.Dense(128 , activation=tf.nn.relu))
+model.add(tf.keras.layers.Dense(128 , activation=tf.nn.relu))
+model.add(tf.keras.layers.Dense(128 , activation=tf.nn.relu))
+
+model.add(tf.keras.layers.Dense(10 , activation=tf.nn.softmax))
+
+model.compile(optimizer = 'adam',
+             loss = 'sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+model.fit(x_train , y_train , epochs=3)
+
+
+# In[16]:
+
+
+val_loss , val_acc = model.evaluate(x_test , y_test)
+print(val_loss , val_acc)
+
+
+# In[13]:
+
+
+plt.imshow(x_train[0] , cmap = plt.cm.binary)
+plt.show()
+
+
+# In[19]:
+
+
+model.save('num_recognizer.model')
+
+
+# In[20]:
+
+
+new_model = tf.keras.models.load_model('num_recognizer.model')
+
+
+# In[21]:
+
+
+predictions = model.predict([x_test])
+
+
+# In[23]:
+
+
+print(predictions)
+
+
+
+# In[8]:
+
+
+
+import numpy as np
+
+
+# In[29]:
+
+
+print(np.argmax(predictions[101]))
+
+
+# In[30]:
+
+
+plt.imshow(x_test[101] , cmap = plt.cm.binary)
+plt.show()
+
+
+# In[ ]:
+
+
+
+
+
+# In[9]:
+
+
+from PIL import Image , ImageDraw
+
+
+# In[137]:
+
+
+image = Image.open(r'C:\Users\Yatharth\Desktop\image5.png')
+image.show()
+
+
+# In[138]:
+
+
+list(image.getdata())
+
+
+# In[139]:
+
+
+im = Image.open(r'C:\Users\Yatharth\Desktop\image4.png').convert('L')
+(width, height) = im.size
+print(height)
+print(width)
+greyscale_map = list(im.getdata())
+greyscale_map = np.array(greyscale_map)
+greyscale_map = greyscale_map.reshape((height, width))
+greyscale_map
+
+
+# In[ ]:
+
+
+
+
+
+# In[140]:
+
+
+greyscale_map = tf.keras.utils.normalize(greyscale_map , axis=1)
+greyscale_map
+
+
+# In[141]:
+
+
+plt.imshow(greyscale_map , cmap = plt.cm.binary)
+plt.show()
+
+
+# In[344]:
+
+
+from PIL import Image
+img = Image.open(r"C:\Users\Yatharth\Desktop\image5.png")
+width,height = img.size
+brp = width/4
+
+img_one_area = (0, 0, brp, height)
+img_two_area = (brp, 0, 2*brp, height)
+img_three_area = (2*brp, 0, 3*brp, height)
+img_four_area = (3*brp, 0, 4*brp, height)
+
+img_one = img.crop(img_one_area)
+img_two = img.crop(img_two_area)
+img_three = img.crop(img_three_area)
+img_four = img.crop(img_four_area)
+
+
+# In[345]:
+
+
+img_one.save(r"C:\Users\Yatharth\Desktop\image5_01.png", "png")
+img_two.save(r"C:\Users\Yatharth\Desktop\image5_02.png", "png")
+img_three.save(r"C:\Users\Yatharth\Desktop\image5_03.png", "png")
+img_four.save(r"C:\Users\Yatharth\Desktop\image5_04.png", "png")
+
+
+# In[346]:
+
+
+from PIL import Image , ImageFilter
+
+def imageprepare(argv):
+    """
+    This function returns the pixel values.
+    The imput is a png file location.
+    """
+    im = Image.open(argv).convert('L')
+    width = float(im.size[0])
+    height = float(im.size[1])
+    newImage = Image.new('L', (28, 28), (255))  # creates white canvas of 28x28 pixels
+
+    if width > height:  # check which dimension is bigger
+        # Width is bigger. Width becomes 20 pixels.
+        nheight = int(round((20.0 / width * height), 0))  # resize height according to ratio width
+        if (nheight == 0):  # rare case but minimum is 1 pixel
+            nheight = 1
+            # resize and sharpen
+        img = im.resize((20, nheight), Image.ANTIALIAS).filter(ImageFilter.SHARPEN)
+        wtop = int(round(((28 - nheight) / 2), 0))  # calculate horizontal position
+        newImage.paste(img, (4, wtop))  # paste resized image on white canvas
+    else:
+        # Height is bigger. Heigth becomes 20 pixels.
+        nwidth = int(round((20.0 / height * width), 0))  # resize width according to ratio height
+        if (nwidth == 0):  # rare case but minimum is 1 pixel
+            nwidth = 1
+            # resize and sharpen
+        img = im.resize((nwidth, 20), Image.ANTIALIAS).filter(ImageFilter.SHARPEN)
+        wleft = int(round(((28 - nwidth) / 2), 0))  # caculate vertical pozition
+        newImage.paste(img, (wleft, 4))  # paste resized image on white canvas
+
+    # newImage.save("sample.png
+
+    tv = list(newImage.getdata())  # get pixel values
+
+    # normalize pixels to 0 and 1. 0 is pure white, 1 is pure black.
+    tva = [(255 - x) * 1.0 / 255.0 for x in tv]
+    print(tva)
+    return tva
+
+gx=imageprepare(r'C:\Users\Yatharth\Desktop\image5_01.png')#file path here
+tx=imageprepare(r'C:\Users\Yatharth\Desktop\image5_02.png')#file path here
+ax=imageprepare(r'C:\Users\Yatharth\Desktop\image5_03.png')#file path here
+sx=imageprepare(r'C:\Users\Yatharth\Desktop\image5_04.png')#file path here
+
+
+# In[ ]:
+
+
+
+
+
+# In[347]:
+
+
+gx1 = np.array(gx)
+tx1 = np.array(tx)
+ax1 = np.array(ax)
+sx1 = np.array(sx)
+
+
+# In[348]:
+
+
+gx1 = gx1.reshape(28,28)
+tx1 = tx1.reshape(28,28)
+ax1 = ax1.reshape(28,28)
+sx1 = sx1.reshape(28,28)
+
+
+# In[349]:
+
+
+plt.imshow(gx1 , cmap = plt.cm.binary)
+plt.show()
+plt.imshow(tx1 , cmap = plt.cm.binary)
+plt.show()
+plt.imshow(ax1 , cmap = plt.cm.binary)
+plt.show()
+plt.imshow(sx1 , cmap = plt.cm.binary)
+plt.show()
+
+
+# In[350]:
+
+
+from numpy import newaxis
+gx1.shape
+gx2 = gx1[newaxis, :,:]
+tx1.shape
+tx2 = tx1[newaxis, :,:]
+ax1.shape
+ax2 = ax1[newaxis, :,:]
+sx1.shape
+sx2 = sx1[newaxis, :,:]
+
+
+# In[351]:
+
+
+ppg = model.predict(gx2)
+
+
+# In[352]:
+
+
+ppt = model.predict(tx2)
+
+
+# In[353]:
+
+
+ppa = model.predict(ax2)
+
+
+# In[354]:
+
+
+pps = model.predict(sx2)
+
+
+# In[355]:
+
+
+print(np.argmax(ppg[0]) , end=""); print(np.argmax(ppt[0]),end=""); print(np.argmax(ppa[0]) , end=""); print(np.argmax(pps[0]))
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
